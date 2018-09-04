@@ -42,29 +42,41 @@ def var_log_cloned(locate=0):
 		print "[INFO] Locate logs..."
 		auth_array = os.popen("locate 'auth.log'").read()
 		access_array = os.popen("locate 'access.log'").read()
-		
+
+		f = open("locate_logs.txt", "a")
+
 		auth_array_root = auth_array.split("\n")
 		for auth in auth_array_root:
 			if not auth == '':
-				name_split = auth.split("/")
-				l = len(name_split)
-				file_name = name_split[l-1]
-				print "[INFO] Cloning the file: " + auth
-				os.system("dd if=" + auth + " of=" + file_name + " bs=1")
-				hash_auth = SHA256_Checksum(file_name)
-				print "[HASH][SHA256][>] " + hash_auth
+				try:
+					name_split = auth.split("/")
+					l = len(name_split)
+					file_name = name_split[l-1]
+					f.write(auth + "|||" + file_name + "\n")
+					print "[INFO] Cloning the file: " + auth
+					os.system("dd if=" + auth + " of=" + file_name + " bs=1")
+					hash_auth = SHA256_Checksum(file_name)
+					print "[HASH][SHA256][>] " + hash_auth
+				except:
+					print "[WARNING] File " + str(auth) + "not found..."
 				
 		access_array_root = access_array.split("\n")
 		for access in access_array_root:
 			if not access == '':
-				name_split = access.split("/")
-				l = len(name_split)
-				file_name = name_split[l-1]
-				print "[INFO] Cloning the file: " + auth
-				os.system("dd if=" + access + " of=" + file_name + " bs=1")
-				hash_auth = SHA256_Checksum(file_name)
-				print "[HASH][SHA256][>] " + hash_auth
-	
+				try:
+					f.write(access+"\n")
+					name_split = access.split("/")
+					l = len(name_split)
+					file_name = name_split[l-1]
+					f.write(access + "|||" + file_name + "\n")
+					print "[INFO] Cloning the file: " + auth
+					os.system("dd if=" + access + " of=" + file_name + " bs=1")
+					hash_auth = SHA256_Checksum(file_name)
+					print "[HASH][SHA256][>] " + hash_auth
+				except:
+					print "[WARNING] File " + str(access) + "not found..."
+
+		f.close()
 	
 def SHA256_Checksum(ruta):
 	h = hashlib.sha256()
@@ -99,21 +111,30 @@ def find_in_Access(find_date_access):
 	print "*** STARTING TO FIND IN ACCESS.LOG                            ***"
 	print "*****************************************************************"
 	
-	if len(access_array_root) > 1:
-		for access in access_array_root:
-			if not access == '':
+	sizefile = os.stat("locate_logs.txt").st_size
+
+	if sizefile > 10:
+		file_locate = open("locate_logs.txt", "r")
+		for line in file_locate.readlines():
+			if "access" in line:
+				access_file = line.split("|||")
+				access = access_file[1].replace("\n","")
 				f = open(access, "r")
 				for line in f.readlines():
 					if find_date_access in line:
-						print "[FILE][ " + str(access) + "][>] " + str(line)
+						print "[FILE][ " + str(access_file[1]) + "][>] " + str(line)
 				f.close()
+		file_locate.close()
 
 	else:
-		f = open("access.log", "r")
-		for line in f.readlines():
-			if find_date_access in line:
-				print "[FILE][ACCESS.LOG][>] " + str(line)
-		f.close()
+		try:
+			f = open("access.log", "r")
+			for line in f.readlines():
+				if find_date_access in line:
+					print "[FILE][ACCESS.LOG][>] " + str(line)
+			f.close()
+		except:
+			print "[WARNING] File access.log not found...'"
 
 def find_in_auth(find_date_auth):
 	global auth_array_root
@@ -121,14 +142,23 @@ def find_in_auth(find_date_auth):
 	print "*** STARTING TO FIND IN AUTH.LOG                              ***"
 	print "*****************************************************************"
 	
-	if len(auth_array_root) > 1:
-		for auth in auth_array_root:
-			if not auth == '':
-				f = open(auth, "r")
-				for line in f.readlines():
-					if find_date_auth in line:
-						print "[FILE][ " + str(auth) + "][>] " + str(line)
-				f.close()
+	sizefile = os.stat("locate_logs.txt").st_size
+
+	if sizefile > 10:
+
+		file_locate = open("locate_logs.txt", "r")
+		for line in file_locate.readlines():
+			if "auth" in line:
+				auth_file = line.split("|||")
+				if not auth_file[1] == '':
+					auth = auth_file[1].replace("\n", "")
+					f = open(auth, "r")
+					for line in f.readlines():
+						if find_date_auth in line:
+							print "[FILE][ " + str(auth_file[1]) + "][>] " + str(line)
+					f.close()
+		file_locate.close()
+
 	else:
 		f = open("auth.log", "r")
 		for line in f.readlines():
