@@ -93,17 +93,25 @@ def find_in_MySQL(find_date):
 	print "*****************************************************************"
 	print "*** STARTING TO FIND IN MYSQL                                 ***"
 	print "*****************************************************************"
-	db = MySQLdb.connect(host="127.0.0.1",    # change for your data
-			user="root",         # username
-			passwd="",  # password
-			db="wppruebas")        # Data Base Name
+	
+	try:
+		db = MySQLdb.connect(host="127.0.0.1",    # change for your data
+				user="root",         # username
+				passwd="",  # password
+				db="wppruebas")        # Data Base Name
 
-	cur = db.cursor()
-	query = "SELECT * FROM `" + table_name + "` WHERE `" + column_name + "` LIKE " + "'%" + find_date + "%'"
-	cur.execute(query)
+		cur = db.cursor()
+		query = "SELECT * FROM `" + table_name + "` WHERE `" + column_name + "` LIKE " + "'%" + find_date + "%'"
+		cur.execute(query)
 
-	for row in cur.fetchall():
-	    print "[USERID][>] " + str(row[1]) + " | [POST_TITLE][>] " + row[5] + " | [POST_ID][>] " + str(row[0]) + " | [POST_DATE][>] " + str(row[2]) + " | [POST_MODIFIED][>] " + str(row[15])
+		for row in cur.fetchall():
+			print "[USERID][>] " + str(row[1]) + " | [POST_TITLE][>] " + row[5] + " | [POST_ID][>] " + str(row[0]) + " | [POST_DATE][>] " + str(row[2]) + " | [POST_MODIFIED][>] " + str(row[15])
+		return True
+
+	except:
+		print "[!][ERROR][>] it's not possible to connect to the MYSQL database..."
+		print "[!][ERROR][>] you must try changing the connection data and start the database service."
+		return False
 
 def find_in_Access(find_date_access):
 	global access_array_root
@@ -112,6 +120,7 @@ def find_in_Access(find_date_access):
 	print "*****************************************************************"
 	
 	sizefile = os.stat("locate_logs.txt").st_size
+	count_access = 0
 
 	if sizefile > 10:
 		file_locate = open("locate_logs.txt", "r")
@@ -124,7 +133,9 @@ def find_in_Access(find_date_access):
 					if find_date_access in line:
 						print "[FILE][ " + str(access_file[1]) + "][>] " + str(line)
 				f.close()
+				count_access += 1
 		file_locate.close()
+		print "[WARNING] File access.log not found..."
 
 	else:
 		try:
@@ -198,12 +209,23 @@ def menu():
 		if x == 2:
 			var_log_cloned(locate=1)
 		if x == 3:
-			find_date_WP = str(raw_input("Insert date (AAAA-MM-DD)[GMT]: "))
-			find_date_access = str(raw_input("Insert date (YEAR/MONTH/DAY)(ej: 28/Aug/2018): )"))
-			find_date_auth = str(raw_input("Insert date (DD MONTH)(ej: 28 Aug): "))
-			find_in_MySQL(find_date_WP)
-			find_in_Access(find_date_access)
-			find_date_auth(find_date_auth)
+			find_date_WP = str(raw_input("[MYSQL] Insert date (AAAA-MM-DD)[GMT]: "))
+			find_date_access = str(raw_input("[ACCESS.LOG] Insert date (YEAR/MONTH/DAY)(ej: 28/Aug/2018): )"))
+			find_date_auth = str(raw_input("[AUTH.LOG] Insert date (DD MONTH)(ej: 28 Aug): "))
+			fWP = find_in_MySQL(find_date_WP)
+			
+			if fWP == False:
+				z = str(raw_input("Do you want to continue? [S/n]"))
+				if z == "s" or z == "S":
+					print "hola"
+					find_in_Access(find_date_access)
+					print "hola1"
+					find_date_auth(find_date_auth)
+				else:
+					menu()
+			else:
+				find_in_Access(find_date_access)
+				find_date_auth(find_date_auth)
 		if x == 4:
 			print "Chau! ;-p"
 			break
