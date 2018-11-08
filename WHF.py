@@ -1,8 +1,12 @@
 #!/usr/bin/python
 # encoding: utf-8
 
+#AUTHOR: JORGE CORONADO
+#TWITTER: @JORGEWEBSEC
+#CONTACT: JORGEWEBSEC[@]GMAIL.COM
+
 import os, MySQLdb, hashlib, subprocess
-#CONSTANTES
+#CONSTANTS
 
 #The directory where it's going to be cloned
 #dir_output = "/home/vm/Escritorio/clonado/"
@@ -17,9 +21,25 @@ table_name = "wp_posts"
 
 column_name = "post_date"
 
+DANGEROUS_WORDS_AUTH = ("/usr/bin/apt-get install", "root")
+RISK_WORDS_AUTH = ("COMMAND")
+
+DANGEROUS_WORDS_ACCESS = ("wp-admin", "login", "admin", "'", "--", "%")
+
+
 #Locate logs
 auth_array_root = []
 access_array_root = []
+
+class color:
+	header = '\033[95m'
+	blue = '\033[94m'
+	green = '\033[92m'
+	alert = '\033[93m'
+	fail = '\033[91m'
+	normal = '\033[0m'
+	bold = '\033[1m'
+	underline = '\033[4m'
 
 # -
 # CLONE AND LOCATE LOGS FUNCTIONS
@@ -131,7 +151,7 @@ def find_in_Access(find_date_access):
 				f = open(access, "r")
 				for line in f.readlines():
 					if find_date_access in line:
-						print "[FILE][ " + str(access_file[1]) + "][>] " + str(line)
+						print_data(str(access_file[1]), line)
 				f.close()
 				count_access += 1
 		file_locate.close()
@@ -142,7 +162,7 @@ def find_in_Access(find_date_access):
 			f = open("access.log", "r")
 			for line in f.readlines():
 				if find_date_access in line:
-					print "[FILE][ACCESS.LOG][>] " + str(line)
+					print_data("access.log", line)
 			f.close()
 		except:
 			print "[WARNING] File access.log not found...'"
@@ -166,7 +186,7 @@ def find_in_auth(find_date_auth):
 					f = open(auth, "r")
 					for line in f.readlines():
 						if find_date_auth in line:
-							print "[FILE][ " + str(auth_file[1]) + "][>] " + str(line)
+							print_data(str(auth_file[1]), str(line))
 					f.close()
 		file_locate.close()
 
@@ -174,8 +194,28 @@ def find_in_auth(find_date_auth):
 		f = open("auth.log", "r")
 		for line in f.readlines():
 			if find_date_auth in line:
-				print "[FILE][AUTH.LOG][>] " + str(line)
+				print_data("auth.log", str(line))
 		f.close()
+# -
+# PRINT DATA FUNCTION
+# -
+
+def print_data(log, data):
+	if "access" in log:
+		for word in DANGEROUS_WORDS_ACCESS:
+			if word in data:
+				print color.alert + "[FILE][ " + str(log).replace("\n", "") + "][>] " + str(data) + color.normal
+			else:
+				print "[FILE][ " + str(log).replace("\n", "") + "][>] " + str(data)
+
+	if "auth" in log:
+		for word in DANGEROUS_WORDS_AUTH:
+			if word in data:
+				print color.alert + "[FILE][ " + str(log).replace("\n", "") + "][>] " + str(data) + color.normal
+			else:
+				print "[FILE][ " + str(log).replace("\n","") + "][>] " + str(data)
+	else:
+		print "[ERROR][>] Not found log..."
 
 # -
 # MENU FUNCTION
@@ -215,17 +255,23 @@ def menu():
 			fWP = find_in_MySQL(find_date_WP)
 			
 			if fWP == False:
-				z = str(raw_input("Do you want to continue? [S/n]"))
+				z = str(raw_input("Do you want to continue? [S/n]: "))
 				if z == "s" or z == "S":
-					print "hola"
-					find_in_Access(find_date_access)
-					print "hola1"
-					find_date_auth(find_date_auth)
+					try:
+						find_in_Access(find_date_access)
+					except: print "[WARNING][>] Error in find_ind_access"
+					#try:
+					find_in_auth(find_date_auth)
+					#except Exception as e: print "[WARNING][>] Error in find_in_auth: " + str(e)
 				else:
 					menu()
 			else:
-				find_in_Access(find_date_access)
-				find_date_auth(find_date_auth)
+				try:
+					find_in_Access(find_date_access)
+				except: print "[WARNING][>] Error in find_ind_access"
+				try:
+					find_in_auth(find_date_auth)
+				except: print "[WARNING][>] Error in find_in_auth"
 		if x == 4:
 			print "Chau! ;-p"
 			break
