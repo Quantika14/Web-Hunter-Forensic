@@ -22,7 +22,7 @@ $python WHF.py
 ```
 ## Authors
 
-* **Jorge Coronado** - *Initial work* - [PurpleBooth](https://github.com/jwscr33d)
+* **Jorge Coronado** - *Initial work* - [@JorgeWebsec](https://github.com/jwscr33d)
 
 ## License
 
