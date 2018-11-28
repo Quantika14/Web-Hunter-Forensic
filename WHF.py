@@ -21,6 +21,12 @@ table_name = "wp_posts"
 
 column_name = "post_date"
 
+#MySQL Connections data
+db_HOST = "127.0.0.1" #Localhost
+db_USER = "root"
+db_PASS = ""
+db_NAME = "wppruebas"
+
 DANGEROUS_WORDS_AUTH = ("/usr/bin/apt-get install", "root")
 RISK_WORDS_AUTH = ("COMMAND")
 
@@ -113,12 +119,12 @@ def find_in_MySQL(find_date):
 	print "*****************************************************************"
 	print "*** STARTING TO FIND IN MYSQL                                 ***"
 	print "*****************************************************************"
-	
+	global db_HOST, db_USER, db_PASS, db_NAME
 	try:
-		db = MySQLdb.connect(host="127.0.0.1",    # change for your data
-				user="root",         # username
-				passwd="",  # password
-				db="wppruebas")        # Data Base Name
+		db = MySQLdb.connect(host=db_HOST,    # change for your data
+				user=db_USER,         # username
+				passwd=db_PASS,  # password
+				db=db_NAME)        # Data Base Name
 
 		cur = db.cursor()
 		query = "SELECT * FROM `" + table_name + "` WHERE `" + column_name + "` LIKE " + "'%" + find_date + "%'"
